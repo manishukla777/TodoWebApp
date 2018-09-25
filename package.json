@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "webpack --mode development",
     "build": "webpack --mode production",
-    "start": "browserify app.js -o bundle.js"
+    "start": "node server/server.js"
+  },
+  "engines":{
+    "node": "8.11.4"
   },
   "author": "Dev Mani",
   "license": "ISC",
