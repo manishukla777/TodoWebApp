@@ -1,181 +1,6 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const axios = require('axios');
-var token = '';
-
-
- var hitAPI = function(method, url, data, headers){
-     
-     console.log(method, url, data, headers);
-     
-     return axios({
-         method,
-         url,
-         data,
-         headers
-     })
-     .then((response) =>{
-         return response;
-     })
-     .catch((error)=>{
-         return Promise.reject(error);
-     })
- }
- 
-var signupDOM = document.querySelector('.signup');
-var loginDOM = document.querySelector('.login');
-var submitBtnDOM = document.querySelector('.submit_btn');
-var logoutBtnDOM = document.querySelector('.logout_btn');
-var addTodoBtnDOM = document.querySelector('.add_todo_btn');
-var todoOrderedList = document.querySelector('.todo_ordered_list');
-var addTodoInput = document.querySelector('.add_todo_input');
-var todoListDiv = document.querySelector('.todolist_div');
- 
- if (signupDOM){
-    signupDOM.addEventListener('click',() => {
-      document.querySelector('.submit_btn').value = 'Signup';
-    })
- }
- 
- 
-if (loginDOM){
-   loginDOM.addEventListener('click',() => {
-      document.querySelector('.submit_btn').value = 'Login';
-   }) 
-}
-
-if (submitBtnDOM){
-  submitBtnDOM.addEventListener('click',() =>{
-    if ( document.querySelector('.submit_btn').value === 'Signup') {
-        hitAPI('post','https://tranquil-reef-12505.herokuapp.com/users',{
-            email: document.querySelector('.email_textbox').value,
-            password: document.querySelector('.password_textbox').value
-        },{
-            "Content-Type": 'application/json',
-        }).then((response) => {
-            console.log(response);
-            token = response.headers['x-auth'];
-            sessionStorage.setItem('token', token);
-            window.location.href = 'todos.html';
-        }).catch((error) => {
-            alert('Enter Valid Email and Password');
-            console.log(error);
-        })
-    } else{
-        hitAPI('post','https://tranquil-reef-12505.herokuapp.com/users/login',{
-            email: document.querySelector('.email_textbox').value,
-            password: document.querySelector('.password_textbox').value
-        },{
-            "Content-Type": 'application/json'
-        }).then((response) => {
-            console.log(response);
-            token = response.headers['x-auth'];
-            sessionStorage.setItem('token', token);
-            window.location.href = 'todos.html';
-        }).catch((error) => {
-            alert('Enter Valid Email and Password');
-            console.log(error);
-        })
-    }
-  });
-}
-
-
-if (logoutBtnDOM){
-    logoutBtnDOM.addEventListener('click',() => {
-        hitAPI('delete','https://tranquil-reef-12505.herokuapp.com/users/me/token',null, {
-        'x-auth': sessionStorage.getItem('token')
-      }).then((response) => {
-        window.location.href = 'index.html';
-        console.log(response);
-      }).catch((error) => {
-        alert('Enter Password');
-        console.log(error);
-      })
-    
-    });
-}
-
-if (addTodoBtnDOM) {
-    getAllTodos();
-    addTodoBtnDOM.addEventListener('click',() => {
-        hitAPI('post','https://tranquil-reef-12505.herokuapp.com/todos',{
-            text: addTodoInput.value,
-        },{
-            'Content-Type': 'application/json',
-            'x-auth': sessionStorage.getItem('token') 
-        }).then((response) => {
-            console.log(response);
-            let html = '<li class="todo_list" id="%id%"><div class="list_div"><button class="complete_status"><i class="ion-md-close-circle"></i></button> <div class="todo">%todoName%</div></div><div class="border_bottom_div"></div></li>'
-            let newHtml = html.replace('%todoName%',response.data.todo.text);
-            newHtml = newHtml.replace('%id%',response.data.todo._id);
-            todoOrderedList.insertAdjacentHTML('beforeend',newHtml);
-        }).catch((error) => {
-            alert('Enter Valid Email and Password');
-            console.log(error);
-        })
-    })
-}
-
-if (todoListDiv) {
-    todoListDiv.addEventListener('click', (e) => {
-        var todoId = e.target.parentNode.parentNode.parentNode.id;
-        console.log('todoId',todoId);
-        if (todoId) {
-            hitAPI('delete',`https://tranquil-reef-12505.herokuapp.com/todos/${todoId}`, null, {
-                  'x-auth': sessionStorage.getItem('token')
-            }).then((response) => {
-                console.log(response);
-                var el = document.getElementById(todoId);
-                el.parentNode.removeChild(el);
-            }).catch((error) => {
-                alert('Enter Valid Email and Password');
-                console.log(error);
-            })
-        }
-    })
-}
-
-//function removeParticularTodo() {
-//    hitAPI('get','https://tranquil-reef-12505.herokuapp.com/todos', null,{
-//        'x-auth': sessionStorage.getItem('token') 
-//    }).then((response) => {
-//        console.log(response);
-//        let todosArr = response.data.todos;
-//        todosArr.forEach((todo) => {
-//            let html = '<li class="todo_list" id="%id%"><div class="list_div"><button class="complete_status"><i class="ion-md-close-circle"></i></button> <div class="todo">%todoName%</div></div><div class="border_bottom_div"></div></li>'
-//            let newHtml = html.replace('%todoName%',todo.text);
-//            newHtml = newHtml.replace('%id%',todo._id);
-//            todoOrderedList.insertAdjacentHTML('beforeend',newHtml);
-//        })
-//    })
-//}
-
-function getAllTodos(){
-    hitAPI('get','https://tranquil-reef-12505.herokuapp.com/todos', null, {
-            'x-auth': sessionStorage.getItem('token') 
-        }).then((response) => {
-            console.log(response);
-            let todosArr = response.data.todos;
-            todosArr.forEach((todo) => {
-                let html = '<li class="todo_list" id="%id%"><div class="list_div"><button class="complete_status"><i class="ion-md-close-circle"></i></button> <div class="todo">%todoName%</div></div><div class="border_bottom_div"></div></li>'
-                let newHtml = html.replace('%todoName%',todo.text);
-                newHtml = newHtml.replace('%id%',todo._id);
-                todoOrderedList.insertAdjacentHTML('beforeend',newHtml);
-            })
-        }).catch((error) => {
-            alert('Enter Valid Email and Password');
-            console.log(error);
-    })
-}
-
-                
-
-
-//"Access-Control-Allow-Origin": '*',
-//const res = await axios(`${proxy}http://food2fork.com/api/get?key=${key}&rId=${this.id}`);
-},{"axios":2}],2:[function(require,module,exports){
 module.exports = require('./lib/axios');
-},{"./lib/axios":4}],3:[function(require,module,exports){
+},{"./lib/axios":3}],2:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -359,7 +184,7 @@ module.exports = function xhrAdapter(config) {
 };
 
 }).call(this,require('_process'))
-},{"../core/createError":10,"./../core/settle":13,"./../helpers/btoa":17,"./../helpers/buildURL":18,"./../helpers/cookies":20,"./../helpers/isURLSameOrigin":22,"./../helpers/parseHeaders":24,"./../utils":26,"_process":28}],4:[function(require,module,exports){
+},{"../core/createError":9,"./../core/settle":12,"./../helpers/btoa":16,"./../helpers/buildURL":17,"./../helpers/cookies":19,"./../helpers/isURLSameOrigin":21,"./../helpers/parseHeaders":23,"./../utils":25,"_process":28}],3:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -413,7 +238,7 @@ module.exports = axios;
 // Allow use of default import syntax in TypeScript
 module.exports.default = axios;
 
-},{"./cancel/Cancel":5,"./cancel/CancelToken":6,"./cancel/isCancel":7,"./core/Axios":8,"./defaults":15,"./helpers/bind":16,"./helpers/spread":25,"./utils":26}],5:[function(require,module,exports){
+},{"./cancel/Cancel":4,"./cancel/CancelToken":5,"./cancel/isCancel":6,"./core/Axios":7,"./defaults":14,"./helpers/bind":15,"./helpers/spread":24,"./utils":25}],4:[function(require,module,exports){
 'use strict';
 
 /**
@@ -434,7 +259,7 @@ Cancel.prototype.__CANCEL__ = true;
 
 module.exports = Cancel;
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 var Cancel = require('./Cancel');
@@ -493,14 +318,14 @@ CancelToken.source = function source() {
 
 module.exports = CancelToken;
 
-},{"./Cancel":5}],7:[function(require,module,exports){
+},{"./Cancel":4}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = function isCancel(value) {
   return !!(value && value.__CANCEL__);
 };
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 var defaults = require('./../defaults');
@@ -581,7 +406,7 @@ utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
 
 module.exports = Axios;
 
-},{"./../defaults":15,"./../utils":26,"./InterceptorManager":9,"./dispatchRequest":11}],9:[function(require,module,exports){
+},{"./../defaults":14,"./../utils":25,"./InterceptorManager":8,"./dispatchRequest":10}],8:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -635,7 +460,7 @@ InterceptorManager.prototype.forEach = function forEach(fn) {
 
 module.exports = InterceptorManager;
 
-},{"./../utils":26}],10:[function(require,module,exports){
+},{"./../utils":25}],9:[function(require,module,exports){
 'use strict';
 
 var enhanceError = require('./enhanceError');
@@ -655,7 +480,7 @@ module.exports = function createError(message, config, code, request, response) 
   return enhanceError(error, config, code, request, response);
 };
 
-},{"./enhanceError":12}],11:[function(require,module,exports){
+},{"./enhanceError":11}],10:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -743,7 +568,7 @@ module.exports = function dispatchRequest(config) {
   });
 };
 
-},{"../cancel/isCancel":7,"../defaults":15,"./../helpers/combineURLs":19,"./../helpers/isAbsoluteURL":21,"./../utils":26,"./transformData":14}],12:[function(require,module,exports){
+},{"../cancel/isCancel":6,"../defaults":14,"./../helpers/combineURLs":18,"./../helpers/isAbsoluteURL":20,"./../utils":25,"./transformData":13}],11:[function(require,module,exports){
 'use strict';
 
 /**
@@ -766,7 +591,7 @@ module.exports = function enhanceError(error, config, code, request, response) {
   return error;
 };
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 var createError = require('./createError');
@@ -794,7 +619,7 @@ module.exports = function settle(resolve, reject, response) {
   }
 };
 
-},{"./createError":10}],14:[function(require,module,exports){
+},{"./createError":9}],13:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -816,7 +641,7 @@ module.exports = function transformData(data, headers, fns) {
   return data;
 };
 
-},{"./../utils":26}],15:[function(require,module,exports){
+},{"./../utils":25}],14:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -916,7 +741,7 @@ utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
 module.exports = defaults;
 
 }).call(this,require('_process'))
-},{"./adapters/http":3,"./adapters/xhr":3,"./helpers/normalizeHeaderName":23,"./utils":26,"_process":28}],16:[function(require,module,exports){
+},{"./adapters/http":2,"./adapters/xhr":2,"./helpers/normalizeHeaderName":22,"./utils":25,"_process":28}],15:[function(require,module,exports){
 'use strict';
 
 module.exports = function bind(fn, thisArg) {
@@ -929,7 +754,7 @@ module.exports = function bind(fn, thisArg) {
   };
 };
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 // btoa polyfill for IE<10 courtesy https://github.com/davidchambers/Base64.js
@@ -967,7 +792,7 @@ function btoa(input) {
 
 module.exports = btoa;
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -1035,7 +860,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
   return url;
 };
 
-},{"./../utils":26}],19:[function(require,module,exports){
+},{"./../utils":25}],18:[function(require,module,exports){
 'use strict';
 
 /**
@@ -1051,7 +876,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
     : baseURL;
 };
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -1106,7 +931,7 @@ module.exports = (
   })()
 );
 
-},{"./../utils":26}],21:[function(require,module,exports){
+},{"./../utils":25}],20:[function(require,module,exports){
 'use strict';
 
 /**
@@ -1122,7 +947,7 @@ module.exports = function isAbsoluteURL(url) {
   return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
 };
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -1192,7 +1017,7 @@ module.exports = (
   })()
 );
 
-},{"./../utils":26}],23:[function(require,module,exports){
+},{"./../utils":25}],22:[function(require,module,exports){
 'use strict';
 
 var utils = require('../utils');
@@ -1206,7 +1031,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
   });
 };
 
-},{"../utils":26}],24:[function(require,module,exports){
+},{"../utils":25}],23:[function(require,module,exports){
 'use strict';
 
 var utils = require('./../utils');
@@ -1261,7 +1086,7 @@ module.exports = function parseHeaders(headers) {
   return parsed;
 };
 
-},{"./../utils":26}],25:[function(require,module,exports){
+},{"./../utils":25}],24:[function(require,module,exports){
 'use strict';
 
 /**
@@ -1290,7 +1115,7 @@ module.exports = function spread(callback) {
   };
 };
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 var bind = require('./helpers/bind');
@@ -1595,7 +1420,7 @@ module.exports = {
   trim: trim
 };
 
-},{"./helpers/bind":16,"is-buffer":27}],27:[function(require,module,exports){
+},{"./helpers/bind":15,"is-buffer":26}],26:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -1618,7 +1443,168 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+const axios = require('axios');
+var token = '';
+
+
+ var hitAPI = function(method, url, data, headers){
+     
+     console.log(method, url, data, headers);
+     
+     return axios({
+         method,
+         url,
+         data,
+         headers
+     })
+     .then((response) =>{
+         return response;
+     })
+     .catch((error)=>{
+         return Promise.reject(error);
+     })
+ }
+ 
+var signupDOM = document.querySelector('.signup');
+var loginDOM = document.querySelector('.login');
+var submitBtnDOM = document.querySelector('.submit_btn');
+var logoutBtnDOM = document.querySelector('.logout_btn');
+var addTodoBtnDOM = document.querySelector('.add_todo_btn');
+var todoOrderedList = document.querySelector('.todo_ordered_list');
+var addTodoInput = document.querySelector('.add_todo_input');
+var todoListDiv = document.querySelector('.todolist_div');
+ 
+ if (signupDOM){
+    signupDOM.addEventListener('click',() => {
+      document.querySelector('.submit_btn').value = 'Signup';
+    })
+ }
+ 
+ 
+if (loginDOM){
+   loginDOM.addEventListener('click',() => {
+      document.querySelector('.submit_btn').value = 'Login';
+   }) 
+}
+
+if (submitBtnDOM){
+  submitBtnDOM.addEventListener('click',() =>{
+    if ( document.querySelector('.submit_btn').value === 'Signup') {
+        hitAPI('post','https://tranquil-reef-12505.herokuapp.com/users',{
+            email: document.querySelector('.email_textbox').value,
+            password: document.querySelector('.password_textbox').value
+        },{
+            "Content-Type": 'application/json',
+        }).then((response) => {
+            console.log(response);
+            token = response.headers['x-auth'];
+            sessionStorage.setItem('token', token);
+            window.location.href = 'todos.html';
+        }).catch((error) => {
+            alert('Enter Valid Email and Password');
+            console.log(error);
+        })
+    } else{
+        hitAPI('post','https://tranquil-reef-12505.herokuapp.com/users/login',{
+            email: document.querySelector('.email_textbox').value,
+            password: document.querySelector('.password_textbox').value
+        },{
+            "Content-Type": 'application/json'
+        }).then((response) => {
+            console.log(response);
+            token = response.headers['x-auth'];
+            sessionStorage.setItem('token', token);
+            window.location.href = 'todos.html';
+        }).catch((error) => {
+            alert('Enter Valid Email and Password');
+            console.log(error);
+        })
+    }
+  });
+}
+
+
+if (logoutBtnDOM){
+    logoutBtnDOM.addEventListener('click',() => {
+        hitAPI('delete','https://tranquil-reef-12505.herokuapp.com/users/me/token',null, {
+        'x-auth': sessionStorage.getItem('token')
+      }).then((response) => {
+        window.location.href = 'index.html';
+        console.log(response);
+      }).catch((error) => {
+        alert('Enter Password');
+        console.log(error);
+      })
+    
+    });
+}
+
+if (addTodoBtnDOM) {
+    getAllTodos();
+    addTodoBtnDOM.addEventListener('click',() => {
+        hitAPI('post','https://tranquil-reef-12505.herokuapp.com/todos',{
+            text: addTodoInput.value,
+        },{
+            'Content-Type': 'application/json',
+            'x-auth': sessionStorage.getItem('token') 
+        }).then((response) => {
+            console.log(response);
+            let html = '<li class="todo_list" id="%id%"><div class="list_div"><button class="complete_status"><i class="ion-md-close-circle"></i></button> <div class="todo">%todoName%</div></div><div class="border_bottom_div"></div></li>'
+            let newHtml = html.replace('%todoName%',response.data.todo.text);
+            newHtml = newHtml.replace('%id%',response.data.todo._id);
+            todoOrderedList.insertAdjacentHTML('beforeend',newHtml);
+        }).catch((error) => {
+            alert('Enter Valid Email and Password');
+            console.log(error);
+        })
+    })
+}
+
+if (todoListDiv) {
+    todoListDiv.addEventListener('click', (e) => {
+        var todoId = e.target.parentNode.parentNode.parentNode.id;
+        console.log('todoId',todoId);
+        if (todoId) {
+            hitAPI('delete',`https://tranquil-reef-12505.herokuapp.com/todos/${todoId}`, null, {
+                  'x-auth': sessionStorage.getItem('token')
+            }).then((response) => {
+                console.log(response);
+                var el = document.getElementById(todoId);
+                el.parentNode.removeChild(el);
+            }).catch((error) => {
+                alert('Enter Valid Email and Password');
+                console.log(error);
+            })
+        }
+    })
+}
+
+
+function getAllTodos(){
+    hitAPI('get','https://tranquil-reef-12505.herokuapp.com/todos', null, {
+            'x-auth': sessionStorage.getItem('token') 
+        }).then((response) => {
+            console.log(response);
+            let todosArr = response.data.todos;
+            todosArr.forEach((todo) => {
+                let html = '<li class="todo_list" id="%id%"><div class="list_div"><button class="complete_status"><i class="ion-md-close-circle"></i></button> <div class="todo">%todoName%</div></div><div class="border_bottom_div"></div></li>'
+                let newHtml = html.replace('%todoName%',todo.text);
+                newHtml = newHtml.replace('%id%',todo._id);
+                todoOrderedList.insertAdjacentHTML('beforeend',newHtml);
+            })
+        }).catch((error) => {
+            alert('Enter Valid Email and Password');
+            console.log(error);
+    })
+}
+
+                
+
+
+//"Access-Control-Allow-Origin": '*',
+//const res = await axios(`${proxy}http://food2fork.com/api/get?key=${key}&rId=${this.id}`);
+},{"axios":1}],28:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -1804,4 +1790,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[1]);
+},{}]},{},[27]);
