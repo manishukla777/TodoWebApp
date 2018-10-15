@@ -3,9 +3,9 @@ var token = '';
 
 
  var hitAPI = function(method, url, data, headers){
-     
+
      console.log(method, url, data, headers);
-     
+
      return axios({
          method,
          url,
@@ -19,7 +19,7 @@ var token = '';
          return Promise.reject(error);
      })
  }
- 
+
 var signupDOM = document.querySelector('.signup');
 var loginDOM = document.querySelector('.login');
 var submitBtnDOM = document.querySelector('.submit_btn');
@@ -28,18 +28,19 @@ var addTodoBtnDOM = document.querySelector('.add_todo_btn');
 var todoOrderedList = document.querySelector('.todo_ordered_list');
 var addTodoInput = document.querySelector('.add_todo_input');
 var todoListDiv = document.querySelector('.todolist_div');
- 
+
  if (signupDOM){
+    console.log('Sign up is set up');
     signupDOM.addEventListener('click',() => {
       document.querySelector('.submit_btn').value = 'Signup';
     })
  }
- 
- 
+
+
 if (loginDOM){
    loginDOM.addEventListener('click',() => {
       document.querySelector('.submit_btn').value = 'Login';
-   }) 
+   })
 }
 
 if (submitBtnDOM){
@@ -90,7 +91,7 @@ if (logoutBtnDOM){
         alert('Enter Password');
         console.log(error);
       })
-    
+
     });
 }
 
@@ -101,7 +102,7 @@ if (addTodoBtnDOM) {
             text: addTodoInput.value,
         },{
             'Content-Type': 'application/json',
-            'x-auth': sessionStorage.getItem('token') 
+            'x-auth': sessionStorage.getItem('token')
         }).then((response) => {
             console.log(response);
             let html = '<li class="todo_list" id="%id%"><div class="list_div"><button class="complete_status"><i class="ion-md-close-circle"></i></button> <div class="todo">%todoName%</div></div><div class="border_bottom_div"></div></li>'
@@ -137,7 +138,7 @@ if (todoListDiv) {
 
 function getAllTodos(){
     hitAPI('get','https://tranquil-reef-12505.herokuapp.com/todos', null, {
-            'x-auth': sessionStorage.getItem('token') 
+            'x-auth': sessionStorage.getItem('token')
         }).then((response) => {
             console.log(response);
             let todosArr = response.data.todos;
@@ -153,7 +154,7 @@ function getAllTodos(){
     })
 }
 
-                
+
 
 
 //"Access-Control-Allow-Origin": '*',
